@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>22i! — past demos droppin season ;)</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      background: #0a0a0f;
+      color: #e8e8f0;
+      overflow-x: hidden;
+      cursor: default;
+    }
+    ::selection { background: rgba(120, 80, 255, 0.4); color: #fff; }
+
+    /* ===== CURSOR GLOW ===== */
+    #cursor-glow {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99999;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(120, 80, 255, 0.08) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s;
+      will-change: left, top;
+    }
+
+    /* ===== CLICK RIPPLE ===== */
+    .ripple {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99998;
+      border: 1.5px solid rgba(180, 140, 255, 0.5);
+      border-radius: 50%;
+      animation: rippleAnim 0.9s ease-out forwards;
+    }
+    @keyframes rippleAnim {
+      0%   { width: 0; height: 0; opacity: 1; }
+      100% { width: 200px; height: 200px; opacity: 0; }
+    }
+
+    /* ===== PARTICLE ===== */
+    .particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99997;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(180, 140, 255, 0.7);
+      animation: particleFly 0.8s ease-out forwards;
+    }
+    @keyframes particleFly {
+      0%   { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+    }
+
+    /* ===== FLOATING ORBS ===== */
+    #orbs-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 24px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(10,10,15,0.9) 0%, transparent 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    nav .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #b48cff, #ff6b9d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    nav .logo span { font-weight: 300; color: #8888aa; -webkit-text-fill-color: #8888aa; }
+    nav ul { display: flex; gap: 32px; list-style: none; }
+    nav ul a {
+      color: #9999bb;
+      text-decoration: none;
+      font-size: 14px;
+      letter-spacing: 1px;
+      transition: color 0.3s;
+      position: relative;
+    }
+    nav ul a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1.5px;
+      background: linear-gradient(90deg, #b48cff, #ff6b9d);
+      transition: width 0.3s;
+    }
+    nav ul a:hover { color: #e8e8f0; }
+    nav ul a:hover::after { width: 100%; }
+
+    /* ===== HERO ===== */
+    #hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+    }
+    #hero .avatar {
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 32px;
+      border: 2px solid rgba(180, 140, 255, 0.3);
+      box-shadow: 0 0 60px rgba(120, 80, 255, 0.15);
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    #hero h1 {
+      font-size: clamp(48px, 10vw, 96px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, #ffffff 0%, #b48cff 50%, #ff6b9d 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    #hero .tagline {
+      font-size: 18px;
+      color: #8888bb;
+      letter-spacing: 4px;
+      font-weight: 300;
+      margin-bottom: 8px;
+    }
+    #hero .sub {
+      font-size: 14px;
+      color: #6666aa;
+      letter-spacing: 2px;
+    }
+    #hero .scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #5555aa;
+      font-size: 11px;
+      letter-spacing: 3px;
+      animation: bounce 2s infinite;
+    }
+    .scroll-hint .arrow {
+      width: 20px; height: 20px;
+      border-right: 1.5px solid #5555aa;
+      border-bottom: 1.5px solid #5555aa;
+      transform: rotate(45deg);
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ===== SECTIONS ===== */
+    section {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 24px;
+    }
+    section .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #b48cff, #ff6b9d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    section .section-sub {
+      font-size: 14px;
+      color: #6666aa;
+      letter-spacing: 2px;
+      margin-bottom: 48px;
+    }
+
+    /* ===== DISCOGRAPHY ===== */
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      margin-bottom: 64px;
+    }
+    .album-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .album-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(180,140,255,0.05), rgba(255,107,157,0.05));
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .album-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(180, 140, 255, 0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .album-card:hover::before { opacity: 1; }
+    .album-card .cover {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 10px;
+      object-fit: cover;
+      margin-bottom: 16px;
+    }
+    .album-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .album-card p {
+      font-size: 13px;
+      color: #8888aa;
+      position: relative;
+      z-index: 1;
+    }
+    .album-card .type-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      background: rgba(180,140,255,0.12);
+      color: #b48cff;
+      margin-top: 8px;
+    }
+
+    /* ===== SONG LIST ===== */
+    .song-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .song-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 10px;
+      transition: all 0.3s;
+      cursor: pointer;
+      gap: 16px;
+    }
+    .song-item:hover {
+      background: rgba(255,255,255,0.04);
+    }
+    .song-item .idx {
+      width: 28px;
+      font-size: 12px;
+      color: #5555aa;
+      font-weight: 300;
+      text-align: right;
+    }
+    .song-item .name {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 400;
+    }
+    .song-item .album-name {
+      font-size: 12px;
+      color: #6666aa;
+    }
+    .song-item .duration {
+      font-size: 12px;
+      color: #5555aa;
+      font-family: 'SF Mono', monospace;
+    }
+    .song-item .play-icon {
+      opacity: 0;
+      transition: opacity 0.3s;
+      color: #b48cff;
+      font-size: 14px;
+    }
+    .song-item:hover .play-icon { opacity: 1; }
+
+    /* ===== ABOUT ===== */
+    #about {
+      text-align: center;
+    }
+    #about p {
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 16px;
+      line-height: 1.8;
+      color: #aaaacc;
+    }
+    #about .netease-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 12px 28px;
+      border: 1px solid rgba(180,140,255,0.2);
+      border-radius: 30px;
+      color: #b48cff;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    #about .netease-link:hover {
+      background: rgba(180,140,255,0.08);
+      border-color: rgba(180,140,255,0.4);
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 48px 24px;
+      color: #4444aa;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    /* ===== MUSIC NOTE FLOATING ===== */
+    .music-note {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99996;
+      font-size: 18px;
+      animation: noteFloat 3s ease-out forwards;
+      color: rgba(180, 140, 255, 0.5);
+    }
+    @keyframes noteFloat {
+      0%   { opacity: 0.8; transform: translateY(0) rotate(0deg) scale(1); }
+      25%  { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-200px) rotate(20deg) scale(0.5); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      nav ul { gap: 16px; }
+      nav ul a { font-size: 12px; }
+      section { padding: 60px 16px; }
+      .album-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cursor Glow -->
+  <div id="cursor-glow"></div>
+
+  <!-- Floating Orbs Canvas -->
+  <canvas id="orbs-canvas"></canvas>
+
+  <!-- Nav -->
+  <nav>
+    <div class="logo">22i! <span>//</span></div>
+    <ul>
+      <li><a href="#discography">Music</a></li>
+      <li><a href="#songs">Songs</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero">
+    <img class="avatar" src="album_collection.jpg" alt="22i!">
+    <div class="tagline">past demos droppin season ;)</div>
+    <h1>22i!</h1>
+    <div class="sub">网易音乐人 · 歌手 · 作词 · 作曲</div>
+    <div class="scroll-hint">
+      <div class="arrow"></div>
+      SCROLL
+    </div>
+  </section>
+
+  <!-- Discography -->
+  <section id="discography">
+    <h2 class="section-title">Discography</h2>
+    <p class="section-sub">Albums · EPs · Singles</p>
+    <div class="album-grid">
+      <div class="album-card">
+        <img class="cover" src="album_collection.jpg" alt="2022 Apr - 2024 July <3">
+        <h3>2022 Apr - 2024 July &lt;3</h3>
+        <p>Compilation · 8 tracks</p>
+        <span class="type-badge">Collection</span>
+      </div>
+      <div class="album-card">
+        <img class="cover" src="album_pinkblue.jpg" alt="pink & blue">
+        <h3>pink &amp; blue</h3>
+        <p>EP · 4 tracks</p>
+        <span class="type-badge">EP</span>
+      </div>
+      <div class="album-card">
+        <img class="cover" src="album_doin2much.jpg" alt="doin 2 much">
+        <h3>doin 2 much</h3>
+        <p>Single</p>
+        <span class="type-badge">Single</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Songs -->
+  <section id="songs">
+    <h2 class="section-title">All Songs</h2>
+    <p class="section-sub">13 tracks · 2022 — 2025</p>
+    <div class="song-list">
+      <div class="song-item">
+        <span class="idx">01</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">doin 2 much</span>
+        <span class="album-name">doin 2 much</span>
+        <span class="duration">2:26</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">02</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">fondue</span>
+        <span class="album-name">pink &amp; blue</span>
+        <span class="duration">2:15</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">03</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">gwen stacy</span>
+        <span class="album-name">pink &amp; blue</span>
+        <span class="duration">2:35</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">04</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">my love of life??</span>
+        <span class="album-name">pink &amp; blue</span>
+        <span class="duration">2:40</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">05</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">where my brain cells at??</span>
+        <span class="album-name">pink &amp; blue</span>
+        <span class="duration">2:42</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">06</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">tonight</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">3:10</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">07</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">2032</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">3:21</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">08</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">flyer &lt;3 dark thoughts remix</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">2:18</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">09</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">lost in time</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">2:55</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">10</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">emo girl &amp; psycho</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">2:49</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">11</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">01.12.24, 1.37AM</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">3:25</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">12</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">sometimes..</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">2:49</span>
+      </div>
+      <div class="song-item">
+        <span class="idx">13</span>
+        <span class="play-icon">&#9654;</span>
+        <span class="name">21</span>
+        <span class="album-name">2022 Apr - 2024 July &lt;3</span>
+        <span class="duration">2:31</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <h2 class="section-title">About</h2>
+    <p class="section-sub">22i!</p>
+    <p>
+      22i! is a Chinese indie music producer and vocalist creating<br>
+      lo-fi, emo-rap &amp; alternative sounds.<br>
+      <em>"past demos droppin season ;)"</em>
+    </p>
+    <a class="netease-link" href="https://music.163.com/artist?id=94514287" target="_blank" rel="noopener">
+      Listen on NetEase Cloud Music &#8599;
+    </a>
+  </section>
+
+  <footer>
+    22i! &middot; leolei22 &middot; past demos droppin season ;)
+  </footer>
+
+  <!-- ===== JAVASCRIPT ===== -->
+  <script>
+    // ===================== CURSOR GLOW =====================
+    const glow = document.getElementById('cursor-glow');
+    let mouseX = -300, mouseY = -300;
+    let currentX = -300, currentY = -300;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function animateGlow() {
+      currentX += (mouseX - currentX) * 0.08;
+      currentY += (mouseY - currentY) * 0.08;
+      glow.style.left = currentX + 'px';
+      glow.style.top = currentY + 'px';
+      requestAnimationFrame(animateGlow);
+    }
+    animateGlow();
+
+    // ===================== CLICK RIPPLE + MUSIC NOTES =====================
+    document.addEventListener('click', (e) => {
+      const x = e.clientX, y = e.clientY;
+
+      // Ripple
+      const ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      ripple.style.left = (x - 100) + 'px';
+      ripple.style.top = (y - 100) + 'px';
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 1000);
+
+      // Particles (sparkle burst)
+      const particleCount = 6;
+      for (let i = 0; i < particleCount; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const angle = (Math.PI * 2 / particleCount) * i;
+        const dist = 30 + Math.random() * 40;
+        p.style.left = (x - 2) + 'px';
+        p.style.top = (y - 2) + 'px';
+        p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+        p.style.background = `hsla(${260 + Math.random() * 40}, 80%, 70%, 0.8)`;
+        p.style.width = (2 + Math.random() * 4) + 'px';
+        p.style.height = p.style.width;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1000);
+      }
+
+      // Floating music note (30% chance)
+      if (Math.random() < 0.3) {
+        const note = document.createElement('div');
+        note.className = 'music-note';
+        note.textContent = ['♪', '♫', '♩', '♬'][Math.floor(Math.random() * 4)];
+        note.style.left = (x - 10) + 'px';
+        note.style.top = (y - 10) + 'px';
+        document.body.appendChild(note);
+        setTimeout(() => note.remove(), 3000);
+      }
+    });
+
+    // ===================== FLOATING ORBS (Canvas) =====================
+    const canvas = document.getElementById('orbs-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Orb {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.r = 20 + Math.random() * 80;
+        this.dx = (Math.random() - 0.5) * 0.3;
+        this.dy = (Math.random() - 0.5) * 0.3;
+        this.hue = 260 + Math.random() * 40; // purple range
+        this.alpha = 0.03 + Math.random() * 0.06;
+        this.pulse = Math.random() * Math.PI * 2;
+        this.pulseSpeed = 0.005 + Math.random() * 0.01;
+      }
+      update() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.pulse += this.pulseSpeed;
+        if (this.x < -this.r) this.x = W + this.r;
+        if (this.x > W + this.r) this.x = -this.r;
+        if (this.y < -this.r) this.y = H + this.r;
+        if (this.y > H + this.r) this.y = -this.r;
+      }
+      draw() {
+        const a = this.alpha * (0.6 + 0.4 * Math.sin(this.pulse));
+        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+        gradient.addColorStop(0, `hsla(${this.hue}, 80%, 70%, ${a})`);
+        gradient.addColorStop(0.4, `hsla(${this.hue + 10}, 70%, 60%, ${a * 0.5})`);
+        gradient.addColorStop(1, `hsla(${this.hue + 20}, 60%, 50%, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const orbs = Array.from({ length: 15 }, () => new Orb());
+
+    function drawOrbs() {
+      ctx.clearRect(0, 0, W, H);
+      orbs.forEach(o => { o.update(); o.draw(); });
+      requestAnimationFrame(drawOrbs);
+    }
+    drawOrbs();
+
+    // ===================== SONG ITEM INTERACTION =====================
+    document.querySelectorAll('.song-item').forEach((item, i) => {
+      item.addEventListener('click', () => {
+        // Just a visual feedback — in a real scenario this would
+        // open NetEase or play a preview
+        item.style.background = 'rgba(180,140,255,0.08)';
+        setTimeout(() => { item.style.background = ''; }, 500);
+      });
+    });
+
+    // ===================== SMOOTH SECTION SCROLL =====================
+    document.querySelectorAll('nav a').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // ===================== SCROLL FADE-IN =====================
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('section').forEach(s => {
+      s.style.opacity = '0';
+      s.style.transform = 'translateY(30px)';
+      s.style.transition = 'all 0.8s ease';
+      observer.observe(s);
+    });
+  </script>
+</body>
+</html>
