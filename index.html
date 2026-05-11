@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>22i! — past demos droppin season ;)</title>
   <style>
     /* ===== RESET & BASE ===== */
@@ -14,10 +14,11 @@
       color: #e8e8f0;
       overflow-x: hidden;
       cursor: default;
+      -webkit-tap-highlight-color: transparent;
     }
     ::selection { background: rgba(120, 80, 255, 0.4); color: #fff; }
 
-    /* ===== CURSOR GLOW ===== */
+    /* ===== CURSOR GLOW (desktop only) ===== */
     #cursor-glow {
       position: fixed;
       pointer-events: none;
@@ -29,6 +30,9 @@
       transform: translate(-50%, -50%);
       transition: opacity 0.3s;
       will-change: left, top;
+    }
+    @media (hover: none) and (pointer: coarse) {
+      #cursor-glow { display: none; }
     }
 
     /* ===== CLICK RIPPLE ===== */
@@ -79,7 +83,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: linear-gradient(180deg, rgba(10,10,15,0.9) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(10,10,15,0.95) 0%, transparent 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
     }
@@ -93,6 +97,7 @@
       background-clip: text;
     }
     nav .logo span { font-weight: 300; color: #8888aa; -webkit-text-fill-color: #8888aa; }
+    nav .nav-right { display: flex; align-items: center; gap: 32px; }
     nav ul { display: flex; gap: 32px; list-style: none; }
     nav ul a {
       color: #9999bb;
@@ -112,6 +117,35 @@
     }
     nav ul a:hover { color: #e8e8f0; }
     nav ul a:hover::after { width: 100%; }
+
+    /* Language Toggle */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      padding: 4px 12px;
+      border: 1px solid rgba(180, 140, 255, 0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #8888bb;
+      transition: all 0.3s;
+      background: rgba(180, 140, 255, 0.05);
+    }
+    .lang-toggle:hover {
+      border-color: rgba(180, 140, 255, 0.4);
+      color: #e8e8f0;
+    }
+    .lang-toggle .indicator {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #5555aa;
+      transition: all 0.3s;
+    }
+    .lang-toggle .indicator.en { background: #b48cff; box-shadow: 0 0 8px rgba(180, 140, 255, 0.4); }
 
     /* ===== HERO ===== */
     #hero {
@@ -222,7 +256,7 @@
       border-radius: 16px;
       padding: 24px;
       transition: all 0.4s ease;
-      cursor: pointer;
+      cursor: default;
       position: relative;
       overflow: hidden;
     }
@@ -286,9 +320,16 @@
       transition: all 0.3s;
       cursor: pointer;
       gap: 16px;
+      text-decoration: none;
+      color: inherit;
     }
-    .song-item:hover {
-      background: rgba(255,255,255,0.04);
+    @media (hover: hover) {
+      .song-item:hover {
+        background: rgba(255,255,255,0.04);
+      }
+    }
+    .song-item:active {
+      background: rgba(180, 140, 255, 0.1);
     }
     .song-item .idx {
       width: 28px;
@@ -296,27 +337,37 @@
       color: #5555aa;
       font-weight: 300;
       text-align: right;
+      flex-shrink: 0;
     }
     .song-item .name {
       flex: 1;
       font-size: 15px;
       font-weight: 400;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .song-item .album-name {
       font-size: 12px;
       color: #6666aa;
+      flex-shrink: 0;
+      display: none;
     }
     .song-item .duration {
       font-size: 12px;
       color: #5555aa;
       font-family: 'SF Mono', monospace;
+      flex-shrink: 0;
     }
     .song-item .play-icon {
       opacity: 0;
       transition: opacity 0.3s;
       color: #b48cff;
       font-size: 14px;
+      flex-shrink: 0;
     }
+    .song-item:active .play-icon,
     .song-item:hover .play-icon { opacity: 1; }
 
     /* ===== ABOUT ===== */
@@ -376,11 +427,27 @@
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-      nav { padding: 16px 20px; }
-      nav ul { gap: 16px; }
-      nav ul a { font-size: 12px; }
+      nav { padding: 14px 16px; }
+      nav .nav-right { gap: 12px; }
+      nav ul { gap: 14px; }
+      nav ul a { font-size: 11px; }
+      nav .logo { font-size: 18px; }
       section { padding: 60px 16px; }
       .album-grid { grid-template-columns: 1fr; }
+      section .section-title { font-size: 28px; }
+      .song-item { padding: 12px 14px; gap: 10px; }
+      .song-item .album-name { display: inline; font-size: 11px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .song-item .idx { width: 20px; font-size: 11px; }
+      .song-item .name { font-size: 14px; }
+      .lang-toggle { padding: 3px 10px; font-size: 11px; }
+    }
+    @media (max-width: 480px) {
+      nav ul { gap: 10px; }
+      nav ul a { font-size: 10px; }
+      .song-item { padding: 10px 10px; gap: 8px; }
+      .song-item .album-name { max-width: 60px; }
+      #hero .avatar { width: 120px; height: 120px; }
+      section .section-title { font-size: 24px; }
     }
   </style>
 </head>
@@ -395,11 +462,17 @@
   <!-- Nav -->
   <nav>
     <div class="logo">22i! <span>//</span></div>
-    <ul>
-      <li><a href="#discography">Music</a></li>
-      <li><a href="#songs">Songs</a></li>
-      <li><a href="#about">About</a></li>
-    </ul>
+    <div class="nav-right">
+      <ul>
+        <li><a href="#discography" data-lang="music">Music</a></li>
+        <li><a href="#songs" data-lang="songs">Songs</a></li>
+        <li><a href="#about" data-lang="about">About</a></li>
+      </ul>
+      <div class="lang-toggle" id="langToggle" role="button" tabindex="0" aria-label="Switch language">
+        <span class="indicator en" id="langIndicator"></span>
+        <span id="langLabel">EN</span>
+      </div>
+    </div>
   </nav>
 
   <!-- Hero -->
@@ -407,149 +480,149 @@
     <img class="avatar" src="album_collection.jpg" alt="22i!">
     <div class="tagline">past demos droppin season ;)</div>
     <h1>22i!</h1>
-    <div class="sub">网易音乐人 · 歌手 · 作词 · 作曲</div>
+    <div class="sub" data-lang="hero-sub">网易音乐人 · 歌手 · 作词 · 作曲</div>
     <div class="scroll-hint">
       <div class="arrow"></div>
-      SCROLL
+      <span data-lang="scroll">SCROLL</span>
     </div>
   </section>
 
   <!-- Discography -->
   <section id="discography">
-    <h2 class="section-title">Discography</h2>
-    <p class="section-sub">Albums · EPs · Singles</p>
+    <h2 class="section-title" data-lang="disco-title">Discography</h2>
+    <p class="section-sub" data-lang="disco-sub">Albums · EPs · Singles</p>
     <div class="album-grid">
       <div class="album-card">
         <img class="cover" src="album_collection.jpg" alt="2022 Apr - 2024 July <3">
         <h3>2022 Apr - 2024 July &lt;3</h3>
-        <p>Compilation · 8 tracks</p>
-        <span class="type-badge">Collection</span>
+        <p data-lang="album1-desc">Compilation · 8 tracks</p>
+        <span class="type-badge" data-lang="badge-collection">Collection</span>
       </div>
       <div class="album-card">
         <img class="cover" src="album_pinkblue.jpg" alt="pink & blue">
         <h3>pink &amp; blue</h3>
-        <p>EP · 4 tracks</p>
-        <span class="type-badge">EP</span>
+        <p data-lang="album2-desc">EP · 4 tracks</p>
+        <span class="type-badge" data-lang="badge-ep">EP</span>
       </div>
       <div class="album-card">
         <img class="cover" src="album_doin2much.jpg" alt="doin 2 much">
         <h3>doin 2 much</h3>
-        <p>Single</p>
-        <span class="type-badge">Single</span>
+        <p data-lang="album3-desc">Single</p>
+        <span class="type-badge" data-lang="badge-single">Single</span>
       </div>
     </div>
   </section>
 
   <!-- Songs -->
   <section id="songs">
-    <h2 class="section-title">All Songs</h2>
-    <p class="section-sub">13 tracks · 2022 — 2025</p>
+    <h2 class="section-title" data-lang="songs-title">All Songs</h2>
+    <p class="section-sub" data-lang="songs-sub">13 tracks · 2022 — 2025</p>
     <div class="song-list">
-      <div class="song-item">
+      <a class="song-item" href="https://music.163.com/song?id=2736635848" target="_blank" rel="noopener">
         <span class="idx">01</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">doin 2 much</span>
         <span class="album-name">doin 2 much</span>
         <span class="duration">2:26</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=2612458873" target="_blank" rel="noopener">
         <span class="idx">02</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">fondue</span>
         <span class="album-name">pink &amp; blue</span>
         <span class="duration">2:15</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=2612465793" target="_blank" rel="noopener">
         <span class="idx">03</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">gwen stacy</span>
         <span class="album-name">pink &amp; blue</span>
         <span class="duration">2:35</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=2612465229" target="_blank" rel="noopener">
         <span class="idx">04</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">my love of life??</span>
         <span class="album-name">pink &amp; blue</span>
         <span class="duration">2:40</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=2612469505" target="_blank" rel="noopener">
         <span class="idx">05</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">where my brain cells at??</span>
         <span class="album-name">pink &amp; blue</span>
         <span class="duration">2:42</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818141" target="_blank" rel="noopener">
         <span class="idx">06</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">tonight</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">3:10</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818142" target="_blank" rel="noopener">
         <span class="idx">07</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">2032</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">3:21</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818862" target="_blank" rel="noopener">
         <span class="idx">08</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">flyer &lt;3 dark thoughts remix</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">2:18</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818860" target="_blank" rel="noopener">
         <span class="idx">09</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">lost in time</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">2:55</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818861" target="_blank" rel="noopener">
         <span class="idx">10</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">emo girl &amp; psycho</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">2:49</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818140" target="_blank" rel="noopener">
         <span class="idx">11</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">01.12.24, 1.37AM</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">3:25</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363818169" target="_blank" rel="noopener">
         <span class="idx">12</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">sometimes..</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">2:49</span>
-      </div>
-      <div class="song-item">
+      </a>
+      <a class="song-item" href="https://music.163.com/song?id=3363822070" target="_blank" rel="noopener">
         <span class="idx">13</span>
         <span class="play-icon">&#9654;</span>
         <span class="name">21</span>
         <span class="album-name">2022 Apr - 2024 July &lt;3</span>
         <span class="duration">2:31</span>
-      </div>
+      </a>
     </div>
   </section>
 
   <!-- About -->
   <section id="about">
-    <h2 class="section-title">About</h2>
+    <h2 class="section-title" data-lang="about-title">About</h2>
     <p class="section-sub">22i!</p>
-    <p>
+    <p data-lang="about-text">
       22i! is a Chinese indie music producer and vocalist creating<br>
       lo-fi, emo-rap &amp; alternative sounds.<br>
       <em>"past demos droppin season ;)"</em>
     </p>
     <a class="netease-link" href="https://music.163.com/artist?id=94514287" target="_blank" rel="noopener">
-      Listen on NetEase Cloud Music &#8599;
+      <span data-lang="listen-link">Listen on NetEase Cloud Music</span> &#8599;
     </a>
   </section>
 
@@ -557,9 +630,82 @@
     22i! &middot; leolei22 &middot; past demos droppin season ;)
   </footer>
 
-  <!-- ===== JAVASCRIPT ===== -->
   <script>
-    // ===================== CURSOR GLOW =====================
+    // ======== LANGUAGE DATA ========
+    const langData = {
+      en: {
+        'music': 'Music',
+        'songs': 'Songs',
+        'about': 'About',
+        'hero-sub': 'NetEase Music Artist · Singer · Lyricist · Composer',
+        'scroll': 'SCROLL',
+        'disco-title': 'Discography',
+        'disco-sub': 'Albums · EPs · Singles',
+        'album1-desc': 'Compilation · 8 tracks',
+        'album2-desc': 'EP · 4 tracks',
+        'album3-desc': 'Single',
+        'badge-collection': 'Collection',
+        'badge-ep': 'EP',
+        'badge-single': 'Single',
+        'songs-title': 'All Songs',
+        'songs-sub': '13 tracks · 2022 — 2025',
+        'about-title': 'About',
+        'about-text': '22i! is a Chinese indie music producer and vocalist creating<br>lo-fi, emo-rap &amp; alternative sounds.<br><em>"past demos droppin season ;)"</em>',
+        'listen-link': 'Listen on NetEase Cloud Music',
+      },
+      zh: {
+        'music': '作品',
+        'songs': '歌曲',
+        'about': '关于',
+        'hero-sub': '网易音乐人 · 歌手 · 作词 · 作曲',
+        'scroll': '向下滚动',
+        'disco-title': '专辑作品',
+        'disco-sub': '专辑 · EP · 单曲',
+        'album1-desc': '合集 · 8 首',
+        'album2-desc': 'EP · 4 首',
+        'album3-desc': '单曲',
+        'badge-collection': '合集',
+        'badge-ep': 'EP',
+        'badge-single': '单曲',
+        'songs-title': '全部歌曲',
+        'songs-sub': '13 首 · 2022 — 2025',
+        'about-title': '关于',
+        'about-text': '22i! 是一位中国独立音乐制作人兼歌手，<br>创作 lo-fi、emo-rap 与另类风格的音乐。<br><em>"past demos droppin season ;)"</em>',
+        'listen-link': '在网易云音乐收听',
+      }
+    };
+
+    let currentLang = 'en';
+
+    function switchLang(lang) {
+      currentLang = lang;
+      const data = langData[lang];
+
+      document.querySelectorAll('[data-lang]').forEach(el => {
+        const key = el.dataset.lang;
+        if (data[key]) {
+          el.innerHTML = data[key];
+        }
+      });
+
+      const indicator = document.getElementById('langIndicator');
+      const label = document.getElementById('langLabel');
+      if (lang === 'en') {
+        indicator.className = 'indicator en';
+        label.textContent = 'EN';
+      } else {
+        indicator.className = 'indicator';
+        label.textContent = '中';
+      }
+
+      document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+    }
+
+    document.getElementById('langToggle').addEventListener('click', () => {
+      switchLang(currentLang === 'en' ? 'zh' : 'en');
+    });
+
+    // ======== CURSOR GLOW ========
     const glow = document.getElementById('cursor-glow');
     let mouseX = -300, mouseY = -300;
     let currentX = -300, currentY = -300;
@@ -578,11 +724,14 @@
     }
     animateGlow();
 
-    // ===================== CLICK RIPPLE + MUSIC NOTES =====================
+    // ======== CLICK RIPPLE + MUSIC NOTES ========
     document.addEventListener('click', (e) => {
+      // Ignore clicks on links (they have their own navigation)
+      if (e.target.closest('a')) return;
+      if (e.target.closest('.lang-toggle')) return;
+
       const x = e.clientX, y = e.clientY;
 
-      // Ripple
       const ripple = document.createElement('div');
       ripple.className = 'ripple';
       ripple.style.left = (x - 100) + 'px';
@@ -590,7 +739,6 @@
       document.body.appendChild(ripple);
       setTimeout(() => ripple.remove(), 1000);
 
-      // Particles (sparkle burst)
       const particleCount = 6;
       for (let i = 0; i < particleCount; i++) {
         const p = document.createElement('div');
@@ -608,7 +756,6 @@
         setTimeout(() => p.remove(), 1000);
       }
 
-      // Floating music note (30% chance)
       if (Math.random() < 0.3) {
         const note = document.createElement('div');
         note.className = 'music-note';
@@ -620,10 +767,13 @@
       }
     });
 
-    // ===================== FLOATING ORBS (Canvas) =====================
+    // ======== FLOATING ORBS (Canvas) ========
     const canvas = document.getElementById('orbs-canvas');
     const ctx = canvas.getContext('2d');
     let W, H;
+    let orbs = [];
+    const orbCount = window.innerWidth < 768 ? 8 : 15;
+    let animId = null;
 
     function resize() {
       W = canvas.width = window.innerWidth;
@@ -633,16 +783,14 @@
     window.addEventListener('resize', resize);
 
     class Orb {
-      constructor() {
-        this.reset();
-      }
+      constructor() { this.reset(); }
       reset() {
         this.x = Math.random() * W;
         this.y = Math.random() * H;
         this.r = 20 + Math.random() * 80;
         this.dx = (Math.random() - 0.5) * 0.3;
         this.dy = (Math.random() - 0.5) * 0.3;
-        this.hue = 260 + Math.random() * 40; // purple range
+        this.hue = 260 + Math.random() * 40;
         this.alpha = 0.03 + Math.random() * 0.06;
         this.pulse = Math.random() * Math.PI * 2;
         this.pulseSpeed = 0.005 + Math.random() * 0.01;
@@ -669,26 +817,16 @@
       }
     }
 
-    const orbs = Array.from({ length: 15 }, () => new Orb());
+    orbs = Array.from({ length: orbCount }, () => new Orb());
 
     function drawOrbs() {
       ctx.clearRect(0, 0, W, H);
       orbs.forEach(o => { o.update(); o.draw(); });
-      requestAnimationFrame(drawOrbs);
+      animId = requestAnimationFrame(drawOrbs);
     }
     drawOrbs();
 
-    // ===================== SONG ITEM INTERACTION =====================
-    document.querySelectorAll('.song-item').forEach((item, i) => {
-      item.addEventListener('click', () => {
-        // Just a visual feedback — in a real scenario this would
-        // open NetEase or play a preview
-        item.style.background = 'rgba(180,140,255,0.08)';
-        setTimeout(() => { item.style.background = ''; }, 500);
-      });
-    });
-
-    // ===================== SMOOTH SECTION SCROLL =====================
+    // ======== SMOOTH SECTION SCROLL ========
     document.querySelectorAll('nav a').forEach(a => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
@@ -697,7 +835,7 @@
       });
     });
 
-    // ===================== SCROLL FADE-IN =====================
+    // ======== SCROLL FADE-IN ========
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
