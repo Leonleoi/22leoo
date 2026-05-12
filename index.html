@@ -57,27 +57,38 @@
       width: 100vw; height: 100vh;
       pointer-events: none;
       z-index: 10000;
-      opacity: 0.035;
+      opacity: 0.04;
       background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* ===== GRID BACKGROUND ===== */
-    .grid-bg {
+    /* ===== AURORA GRADIENT CANVAS ===== */
+    #aurora-canvas {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
+      z-index: -5;
       pointer-events: none;
-      z-index: -1;
-      opacity: 0.03;
-      background-image:
-        linear-gradient(rgba(140, 120, 200, 0.3) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(140, 120, 200, 0.3) 1px, transparent 1px);
-      background-size: 72px 72px;
-      mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 70%);
-      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 70%);
     }
 
-    /* ===== LA BACKGROUND LAYERS (subtle) ===== */
+    /* ===== STAR FIELD CANVAS ===== */
+    #stars-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -4;
+      pointer-events: none;
+    }
+
+    /* ===== LIGHT STREAKS CANVAS ===== */
+    #streaks-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    /* ===== LA BACKGROUND LAYERS ===== */
     .bg-layer {
       position: fixed;
       top: 0; left: 0;
@@ -91,8 +102,8 @@
       width: 100%; height: 100%;
       object-fit: cover;
       opacity: 0;
-      transition: opacity 2.5s ease;
-      filter: saturate(0.3) brightness(0.15) contrast(1.1);
+      transition: opacity 3s ease;
+      filter: saturate(0.4) brightness(0.18) contrast(1.15);
     }
     .bg-layer img.active { opacity: 1; }
     .bg-layer img:nth-child(1) { opacity: 1; }
@@ -105,8 +116,8 @@
       z-index: -1;
       pointer-events: none;
       background:
-        radial-gradient(ellipse 55% 45% at 50% 35%, transparent 15%, rgba(6,6,8,0.94) 100%),
-        linear-gradient(180deg, rgba(6,6,8,0.7) 0%, rgba(6,6,8,0.1) 25%, rgba(6,6,8,0.1) 75%, rgba(6,6,8,0.8) 100%);
+        radial-gradient(ellipse 50% 40% at 50% 35%, transparent 10%, rgba(6,6,8,0.9) 100%),
+        linear-gradient(180deg, rgba(6,6,8,0.7) 0%, rgba(6,6,8,0.05) 25%, rgba(6,6,8,0.05) 75%, rgba(6,6,8,0.8) 100%);
     }
 
     /* ===== CUSTOM CURSOR ===== */
@@ -701,6 +712,9 @@
 <body>
 
   <!-- Background System -->
+  <canvas id="aurora-canvas"></canvas>
+  <canvas id="stars-canvas"></canvas>
+  <canvas id="streaks-canvas"></canvas>
   <div class="bg-layer">
     <img src="la_bg_3.jpg" alt="" class="active">
     <img src="la_bg_1.jpg" alt="">
@@ -708,8 +722,6 @@
     <img src="la_bg_4.jpg" alt="">
   </div>
   <div class="bg-vignette"></div>
-  <div class="grid-bg"></div>
-  <div class="vert-lines"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
 
   <!-- Custom Cursor -->
   <div id="cursor-dot"></div>
@@ -1098,63 +1110,202 @@
       }
     });
 
-    // ======== FLOATING ORBS ========
-    const canvas = document.getElementById('orbs-canvas');
-    const ctx = canvas.getContext('2d');
-    let W, H, orbs = [];
-    const orbCount = window.innerWidth < 768 ? 6 : 20;
+    // ============================================================
+    // ======== BACKGROUND SYSTEM ========
+    // ============================================================
 
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
+    // --- AURORA CANVAS (slow color washes) ---
+    const auroraCanvas = document.getElementById('aurora-canvas');
+    const aCtx = auroraCanvas.getContext('2d');
+    const starsCanvas = document.getElementById('stars-canvas');
+    const sCtx = starsCanvas.getContext('2d');
+    const streaksCanvas = document.getElementById('streaks-canvas');
+    const stCtx = streaksCanvas.getContext('2d');
+    const orbsCanvas = document.getElementById('orbs-canvas');
+    const oCtx = orbsCanvas.getContext('2d');
+
+    let aw, ah, stars = [], streaks = [], orbs = [];
+
+    function resizeAll() {
+      aw = auroraCanvas.width = starsCanvas.width = streaksCanvas.width = orbsCanvas.width = window.innerWidth;
+      ah = auroraCanvas.height = starsCanvas.height = streaksCanvas.height = orbsCanvas.height = window.innerHeight;
+      if (stars.length === 0) initStars();
+      if (streaks.length === 0) initStreaks();
       if (orbs.length === 0) initOrbs();
     }
-    resize();
-    window.addEventListener('resize', resize);
+    resizeAll();
+    window.addEventListener('resize', resizeAll);
 
+    // --- AURORA: slow morphing color fields ---
+    const auroraBlobs = [
+      { x: 0.25, y: 0.25, r: 0.45, hue: 260, phase: 0, speed: 0.0004, amp: 0.06 },
+      { x: 0.75, y: 0.30, r: 0.40, hue: 320, phase: 2.1, speed: 0.0005, amp: 0.07 },
+      { x: 0.50, y: 0.55, r: 0.50, hue: 280, phase: 4.3, speed: 0.00035, amp: 0.05 },
+      { x: 0.35, y: 0.70, r: 0.35, hue: 300, phase: 1.5, speed: 0.00045, amp: 0.04 },
+    ];
+
+    function drawAurora(time) {
+      aCtx.clearRect(0, 0, aw, ah);
+      for (const b of auroraBlobs) {
+        b.phase += b.speed;
+        const cx = (b.x + Math.sin(b.phase) * b.amp) * aw;
+        const cy = (b.y + Math.cos(b.phase * 1.3) * b.amp) * ah;
+        const r = b.r * Math.min(aw, ah) * (0.85 + 0.15 * Math.sin(b.phase * 0.7));
+        const g = aCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g.addColorStop(0, `hsla(${b.hue}, 70%, 55%, 0.06)`);
+        g.addColorStop(0.4, `hsla(${b.hue + 20}, 60%, 45%, 0.03)`);
+        g.addColorStop(1, 'transparent');
+        aCtx.fillStyle = g;
+        aCtx.fillRect(cx - r, cy - r, r * 2, r * 2);
+      }
+    }
+
+    // --- STARS: tiny twinkling dots ---
+    function initStars() {
+      stars = [];
+      const count = Math.floor((aw * ah) / 3500); // density
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * aw,
+          y: Math.random() * ah,
+          r: 0.3 + Math.random() * 1.4,
+          baseAlpha: 0.15 + Math.random() * 0.5,
+          twinkleSpeed: 0.005 + Math.random() * 0.03,
+          twinklePhase: Math.random() * Math.PI * 2,
+          hue: Math.random() < 0.7 ? 220 + Math.random() * 60 : 320 + Math.random() * 20,
+        });
+      }
+    }
+    initStars();
+
+    function drawStars(time) {
+      sCtx.clearRect(0, 0, aw, ah);
+      for (const s of stars) {
+        s.twinklePhase += s.twinkleSpeed;
+        const alpha = s.baseAlpha * (0.4 + 0.6 * Math.abs(Math.sin(s.twinklePhase)));
+        sCtx.fillStyle = `hsla(${s.hue}, 60%, 75%, ${alpha})`;
+        sCtx.beginPath();
+        sCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        sCtx.fill();
+        // glow for bigger stars
+        if (s.r > 1 && alpha > 0.3) {
+          const g = sCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
+          g.addColorStop(0, `hsla(${s.hue}, 80%, 80%, ${alpha * 0.4})`);
+          g.addColorStop(1, 'transparent');
+          sCtx.fillStyle = g;
+          sCtx.fillRect(s.x - s.r * 4, s.y - s.r * 4, s.r * 8, s.r * 8);
+        }
+      }
+    }
+
+    // --- LIGHT STREAKS: slow diagonal beams ---
+    function initStreaks() {
+      streaks = [];
+      const count = 6;
+      for (let i = 0; i < count; i++) {
+        streaks.push({
+          x: Math.random() * aw,
+          y: -100 - Math.random() * ah,
+          length: 200 + Math.random() * 500,
+          width: 0.5 + Math.random() * 1.5,
+          angle: 35 + Math.random() * 20,
+          speed: 0.15 + Math.random() * 0.5,
+          hue: 240 + Math.random() * 60,
+          alpha: 0.02 + Math.random() * 0.06,
+          phase: Math.random() * Math.PI * 2,
+          wobble: 0.001 + Math.random() * 0.003,
+        });
+      }
+    }
+    initStreaks();
+
+    function drawStreaks(time) {
+      stCtx.clearRect(0, 0, aw, ah);
+      for (const s of streaks) {
+        s.phase += s.wobble;
+        const baseY = s.y + Math.sin(s.phase) * 30;
+        const rad = (s.angle * Math.PI) / 180;
+        const dx = Math.cos(rad);
+        const dy = Math.sin(rad);
+        const g = stCtx.createLinearGradient(
+          s.x, baseY,
+          s.x + dx * s.length, baseY + dy * s.length
+        );
+        g.addColorStop(0, `hsla(${s.hue}, 60%, 70%, 0)`);
+        g.addColorStop(0.4, `hsla(${s.hue}, 60%, 70%, ${s.alpha})`);
+        g.addColorStop(0.6, `hsla(${s.hue}, 60%, 70%, ${s.alpha})`);
+        g.addColorStop(1, `hsla(${s.hue}, 60%, 70%, 0)`);
+        stCtx.strokeStyle = g;
+        stCtx.lineWidth = s.width;
+        stCtx.beginPath();
+        stCtx.moveTo(s.x, baseY);
+        stCtx.lineTo(s.x + dx * s.length, baseY + dy * s.length);
+        stCtx.stroke();
+
+        s.y += s.speed;
+        if (s.y > ah + 200) {
+          s.y = -200 - Math.random() * 200;
+          s.x = Math.random() * aw;
+        }
+      }
+    }
+
+    // --- ORBS: larger, dreamier floating blobs ---
     function initOrbs() {
       orbs = [];
-      for (let i = 0; i < orbCount; i++) {
+      const count = window.innerWidth < 768 ? 8 : 18;
+      for (let i = 0; i < count; i++) {
         orbs.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: 30 + Math.random() * 100,
-          dx: (Math.random() - 0.5) * 0.25,
-          dy: (Math.random() - 0.5) * 0.25,
-          hue: 250 + Math.random() * 40,
-          alpha: 0.015 + Math.random() * 0.04,
+          x: Math.random() * aw,
+          y: Math.random() * ah,
+          r: 40 + Math.random() * 140,
+          dx: (Math.random() - 0.5) * 0.2,
+          dy: (Math.random() - 0.5) * 0.2,
+          hue: 240 + Math.random() * 80,
+          alpha: 0.02 + Math.random() * 0.06,
           phase: Math.random() * Math.PI * 2,
-          speed: 0.003 + Math.random() * 0.008,
+          speed: 0.002 + Math.random() * 0.01,
         });
       }
     }
     initOrbs();
 
-    function drawOrbs() {
-      ctx.clearRect(0, 0, W, H);
+    function drawOrbs(time) {
+      oCtx.clearRect(0, 0, aw, ah);
       for (const o of orbs) {
         o.x += o.dx;
         o.y += o.dy;
         o.phase += o.speed;
-        if (o.x < -o.r) o.x = W + o.r;
-        if (o.x > W + o.r) o.x = -o.r;
-        if (o.y < -o.r) o.y = H + o.r;
-        if (o.y > H + o.r) o.y = -o.r;
+        if (o.x < -o.r) o.x = aw + o.r;
+        if (o.x > aw + o.r) o.x = -o.r;
+        if (o.y < -o.r) o.y = ah + o.r;
+        if (o.y > ah + o.r) o.y = -o.r;
         const a = o.alpha * (0.5 + 0.5 * Math.sin(o.phase));
-        const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-        g.addColorStop(0, `hsla(${o.hue}, 80%, 70%, ${a})`);
-        g.addColorStop(0.5, `hsla(${o.hue + 10}, 70%, 60%, ${a * 0.4})`);
-        g.addColorStop(1, `hsla(${o.hue + 20}, 60%, 50%, 0)`);
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
-        ctx.fill();
+        const g = oCtx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+        g.addColorStop(0, `hsla(${o.hue}, 80%, 65%, ${a})`);
+        g.addColorStop(0.35, `hsla(${o.hue + 15}, 70%, 55%, ${a * 0.55})`);
+        g.addColorStop(0.7, `hsla(${o.hue + 30}, 60%, 45%, ${a * 0.12})`);
+        g.addColorStop(1, 'transparent');
+        oCtx.fillStyle = g;
+        oCtx.beginPath();
+        oCtx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+        oCtx.fill();
       }
-      requestAnimationFrame(drawOrbs);
     }
-    drawOrbs();
 
-    // ======== LA BACKGROUND ROTATION ========
+    // --- MAIN BACKGROUND LOOP ---
+    let bgTime = 0;
+    function drawBg(ts) {
+      bgTime = ts;
+      drawAurora(ts);
+      drawStreaks(ts);
+      drawStars(ts);
+      drawOrbs(ts);
+      requestAnimationFrame(drawBg);
+    }
+    requestAnimationFrame(drawBg);
+
+    // --- LA BACKGROUND ROTATION ---
     (function rotateBg() {
       const imgs = document.querySelectorAll('.bg-layer img');
       let current = 0;
