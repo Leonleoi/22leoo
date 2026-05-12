@@ -1,4 +1,4 @@
-# 22i! / 二二哎
+# 22i!
 
 **22i!** — past demos droppin season ;)
 
