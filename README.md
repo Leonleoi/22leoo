@@ -13,11 +13,6 @@ A personal music portfolio site for **22i!**, a Chinese indie music producer & v
 
 ---
 
-## 📸 Preview
-
-<img width="1400" alt="22i! preview" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop" />
-
----
 
 ## ✨ Features
 
