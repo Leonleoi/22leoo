@@ -17,6 +17,9 @@ Tech: vanilla HTML/CSS/JS, no frameworks. Deployed via GitHub Pages.
 
 Live site: https://leonleoi.github.io/22leoo/
 
+**Tools** 
+This project was completed using Claude Code + Codex.
+
 ---
 
 **22i!** — past demos droppin season ;)
@@ -35,3 +38,6 @@ Live site: https://leonleoi.github.io/22leoo/
 技术栈：原生 HTML/CSS/JS，无框架。通过 GitHub Pages 部署。
 
 在线地址：https://leonleoi.github.io/22leoo/
+
+**工具
+此项目由claude code+ Codex完成
