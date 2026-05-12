@@ -79,6 +79,7 @@ This project was created with assistance from:
 
 - Claude Code
 - Codex
+- Chatgpt
 
 ---
 
@@ -154,3 +155,4 @@ Minimal structure, heavy atmosphere.
 Built with:
 - Claude Code
 - Codex
+- Chatgpt
